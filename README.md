@@ -34,7 +34,7 @@ Este aplicativo foi construído para permitir que utilizadores registrem, visual
 
 Se deseja clonar e testar o projeto no seu computador, siga os passos abaixo:
 
-1. **Pré-requisitos:** Certifique-se de ter o [Flutter SDK](https://docs.flutter.dev/get-started/install) instalado.
+1. **Pré-requisitos:** Certifique-se de ter o Flutter SDK instalado.
 
 2. **Clonar o Repositório:**
 
@@ -49,11 +49,13 @@ Se deseja clonar e testar o projeto no seu computador, siga os passos abaixo:
    Certifique-se de que a inicialização do Supabase no ficheiro main.dart contém a sua URL e Chave pública corretas:
 
    await Supabase.initialize(
+   
      url: 'https://SUA_URL.supabase.co',
+   
      anonKey: 'SUA_CHAVE_ANON',
    );
 
-5. **Executar a Aplicação:**
+6. **Executar a Aplicação:**
 
    * No navegador: flutter run -d chrome
 
