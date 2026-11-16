@@ -45,17 +45,7 @@ Se deseja clonar e testar o projeto no seu computador, siga os passos abaixo:
 
    flutter pub get
 
-4. **Configuração do Supabase (main.dart):**
-   Certifique-se de que a inicialização do Supabase no ficheiro main.dart contém a sua URL e Chave pública corretas:
-
-   await Supabase.initialize(
-   
-     url: 'https://SUA_URL.supabase.co',
-   
-     anonKey: 'SUA_CHAVE_ANON',
-   );
-
-6. **Executar a Aplicação:**
+4. **Executar a Aplicação:**
 
    * No navegador: flutter run -d chrome
 
