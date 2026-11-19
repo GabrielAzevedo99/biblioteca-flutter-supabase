@@ -1,3 +1,5 @@
+//acresentar codigo e fazer update
+
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/database_service.dart';
@@ -12,7 +14,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _authService = AuthService();
   final _databaseService = DatabaseService();
-  
+
   late Future<List> _itemsFuture;
 
   @override
@@ -32,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final tituloController = TextEditingController();
     final autorController = TextEditingController();
     final anoController = TextEditingController();
+    final codigoController = TextEditingController();
     final formKey = GlobalKey<FormState>();
     bool isLoading = false;
 
@@ -39,7 +42,8 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Row(
             children: [
               Icon(Icons.book, color: Colors.blueAccent),
@@ -47,71 +51,90 @@ class _HomeScreenState extends State<HomeScreen> {
               Text('Adicionar Livro'),
             ],
           ),
-          content: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: tituloController,
-                  decoration: const InputDecoration(
-                    labelText: 'Título do Livro',
-                    prefixIcon: Icon(Icons.title),
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Por favor, insira o título.';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: autorController,
-                  decoration: const InputDecoration(
-                    labelText: 'Autor',
-                    prefixIcon: Icon(Icons.person),
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Por favor, insira o autor.';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: anoController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Ano de Publicação (Opcional)',
-                    prefixIcon: Icon(Icons.calendar_today),
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value != null && value.trim().isNotEmpty) {
-                      if (int.tryParse(value) == null) {
-                        return 'Insira um ano válido.';
+          content: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: codigoController,
+                    decoration: const InputDecoration(
+                      labelText: 'Código do Livro (Ex: LIV-001)',
+                      prefixIcon: Icon(Icons.qr_code),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Por favor, insira o código.';
                       }
-                    }
-                    return null;
-                  },
-                ),
-              ],
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: tituloController,
+                    decoration: const InputDecoration(
+                      labelText: 'Título do Livro',
+                      prefixIcon: Icon(Icons.title),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Por favor, insira o título.';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: autorController,
+                    decoration: const InputDecoration(
+                      labelText: 'Autor',
+                      prefixIcon: Icon(Icons.person),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Por favor, insira o autor.';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: anoController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Ano de Publicação (Opcional)',
+                      prefixIcon: Icon(Icons.calendar_today),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value != null && value.trim().isNotEmpty) {
+                        if (int.tryParse(value.trim()) == null) {
+                          return 'Insira um ano válido.';
+                        }
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
           actions: [
             TextButton(
               onPressed: isLoading ? null : () => Navigator.pop(context),
-              child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
+              child:
+                  const Text('Cancelar', style: TextStyle(color: Colors.grey)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blueAccent,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
               ),
               onPressed: isLoading
                   ? null
@@ -119,11 +142,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       if (formKey.currentState!.validate()) {
                         setDialogState(() => isLoading = true);
                         try {
-                          final ano = int.tryParse(anoController.text.trim());
+                          final anoTexto = anoController.text.trim();
+                          final ano =
+                              anoTexto.isEmpty ? null : int.tryParse(anoTexto);
+
                           await _databaseService.addItem(
                             tituloController.text.trim(),
                             autorController.text.trim(),
                             ano,
+                            codigoController.text.trim(),
                           );
                           if (!mounted) return;
                           Navigator.pop(context);
@@ -150,9 +177,176 @@ class _HomeScreenState extends State<HomeScreen> {
                   ? const SizedBox(
                       width: 20,
                       height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
                     )
                   : const Text('Salvar'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Diálogo para Editar Livro Existente
+  Future<void> _editLivroDialog(Map livro) async {
+    final id = livro['id'] as int;
+    final codigoController =
+        TextEditingController(text: livro['codigo']?.toString() ?? '');
+    final tituloController =
+        TextEditingController(text: livro['titulo']?.toString() ?? '');
+    final autorController =
+        TextEditingController(text: livro['autor']?.toString() ?? '');
+    final anoController = TextEditingController(
+      text: livro['ano'] != null ? livro['ano'].toString() : '',
+    );
+    final formKey = GlobalKey<FormState>();
+    bool isLoading = false;
+
+    await showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(
+            children: [
+              Icon(Icons.edit, color: Colors.blueAccent),
+              SizedBox(width: 8),
+              Text('Editar Livro'),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: codigoController,
+                    decoration: const InputDecoration(
+                      labelText: 'Código do Livro (Ex: LIV-001)',
+                      prefixIcon: Icon(Icons.qr_code),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Por favor, insira o código.';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: tituloController,
+                    decoration: const InputDecoration(
+                      labelText: 'Título do Livro',
+                      prefixIcon: Icon(Icons.title),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Por favor, insira o título.';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: autorController,
+                    decoration: const InputDecoration(
+                      labelText: 'Autor',
+                      prefixIcon: Icon(Icons.person),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Por favor, insira o autor.';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: anoController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Ano de Publicação (Opcional)',
+                      prefixIcon: Icon(Icons.calendar_today),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value != null && value.trim().isNotEmpty) {
+                        if (int.tryParse(value.trim()) == null) {
+                          return 'Insira um ano válido.';
+                        }
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: isLoading ? null : () => Navigator.pop(context),
+              child:
+                  const Text('Cancelar', style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
+              ),
+              onPressed: isLoading
+                  ? null
+                  : () async {
+                      if (formKey.currentState!.validate()) {
+                        setDialogState(() => isLoading = true);
+                        try {
+                          final anoTexto = anoController.text.trim();
+                          final ano =
+                              anoTexto.isEmpty ? null : int.tryParse(anoTexto);
+
+                          await _databaseService.updateItem(
+                            id,
+                            tituloController.text.trim(),
+                            autorController.text.trim(),
+                            ano,
+                            codigoController.text.trim(),
+                          );
+                          if (!mounted) return;
+                          Navigator.pop(context);
+                          _loadLivros();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Livro atualizado com sucesso!'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        } catch (e) {
+                          setDialogState(() => isLoading = false);
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Erro ao atualizar: $e'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
+                    },
+              child: isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
+                    )
+                  : const Text('Salvar alterações'),
             ),
           ],
         ),
@@ -174,14 +368,17 @@ class _HomeScreenState extends State<HomeScreen> {
             child: const Text('Cancelar'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red, foregroundColor: Colors.white),
             onPressed: () async {
               await _databaseService.deleteItem(id);
               if (!mounted) return;
               Navigator.pop(context);
               _loadLivros();
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Livro excluído com sucesso.'), backgroundColor: Colors.red),
+                const SnackBar(
+                    content: Text('Livro excluído com sucesso.'),
+                    backgroundColor: Colors.red),
               );
             },
             child: const Text('Excluir'),
@@ -222,7 +419,8 @@ class _HomeScreenState extends State<HomeScreen> {
               return const Center(child: CircularProgressIndicator());
             }
             if (snapshot.hasError) {
-              return Center(child: Text('Erro ao carregar dados: ${snapshot.error}'));
+              return Center(
+                  child: Text('Erro ao carregar dados: ${snapshot.error}'));
             }
             final livros = snapshot.data ?? [];
             if (livros.isEmpty) {
@@ -230,7 +428,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.library_books_outlined, size: 80, color: Colors.grey[400]),
+                    Icon(Icons.library_books_outlined,
+                        size: 80, color: Colors.grey[400]),
                     const SizedBox(height: 16),
                     Text(
                       'Nenhum livro cadastrado.',
@@ -251,6 +450,7 @@ class _HomeScreenState extends State<HomeScreen> {
               itemCount: livros.length,
               itemBuilder: (context, index) {
                 final livro = livros[index];
+                final codigo = livro['codigo'] ?? 'S/C';
                 final titulo = livro['titulo'] ?? 'Sem Título';
                 final autor = livro['autor'] ?? 'Sem Autor';
                 final ano = livro['ano'] != null ? 'Ano: ${livro['ano']}' : '';
@@ -258,30 +458,72 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 return Card(
                   elevation: 2,
-                  margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  margin:
+                      const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                   child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    onTap: () => _editLivroDialog(livro),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 8),
                     leading: CircleAvatar(
                       backgroundColor: Colors.blueAccent,
                       foregroundColor: Colors.white,
-                      child: Text(initial, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      child: Text(initial,
+                          style: const TextStyle(fontWeight: FontWeight.bold)),
                     ),
-                    title: Text(
-                      titulo,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    title: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: Colors.blue.shade200),
+                          ),
+                          child: Text(
+                            codigo,
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue.shade800),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            titulo,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                     subtitle: Padding(
-                      padding: const EdgeInsets.only(top: 4),
+                      padding: const EdgeInsets.only(top: 6),
                       child: Text(
                         'Autor: $autor ${ano.isNotEmpty ? '• $ano' : ''}',
                         style: TextStyle(color: Colors.grey[700]),
                       ),
                     ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                      onPressed: () => _confirmDelete(livro['id'], titulo),
-                      tooltip: 'Excluir livro',
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit_outlined,
+                              color: Colors.blueAccent),
+                          onPressed: () => _editLivroDialog(livro),
+                          tooltip: 'Editar livro',
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline,
+                              color: Colors.redAccent),
+                          onPressed: () => _confirmDelete(livro['id'], titulo),
+                          tooltip: 'Excluir livro',
+                        ),
+                      ],
                     ),
                   ),
                 );
