@@ -3,36 +3,45 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class DatabaseService {
   final _supabase = Supabase.instance.client;
 
-  // Ler (Read) todos os livros
+  // Buscar itens/livros
   Future<List> getItems() async {
-    final data = await _supabase
-        .from('livros')
-        .select()
-        .order('created_at', ascending: false);
-    return data;
+    final response =
+        await _supabase.from('livros').select().order('id', ascending: false);
+    return List.from(response);
   }
 
-  // Criar (Create) um novo livro
-  Future<void> addItem(String titulo, String autor, int? ano) async {
-    final userId = _supabase.auth.currentUser!.id;
+  // Adicionar item/livro com o código
+  Future<void> addItem(
+    String titulo,
+    String autor,
+    int? ano,
+    String codigo,
+  ) async {
     await _supabase.from('livros').insert({
       'titulo': titulo,
       'autor': autor,
       'ano': ano,
-      'user_id': userId,
+      'codigo': codigo,
     });
   }
 
-  // Atualizar (Update)
-  Future<void> updateItem(int id, String titulo, String autor, int? ano) async {
+  // Atualizar item/livro
+  Future<void> updateItem(
+    int id,
+    String titulo,
+    String autor,
+    int? ano,
+    String codigo,
+  ) async {
     await _supabase.from('livros').update({
       'titulo': titulo,
       'autor': autor,
       'ano': ano,
+      'codigo': codigo,
     }).eq('id', id);
   }
 
-  // Deletar (Delete)
+  // Deletar item/livro
   Future<void> deleteItem(int id) async {
     await _supabase.from('livros').delete().eq('id', id);
   }
